@@ -6,152 +6,59 @@
 <title>일일 재고 현황표</title>
 
 <style>
-  body{
-    font-family: Arial;
-    background:#f4f4f4;
-    text-align:center;
-    margin:0;
-  }
-  h1{
-    margin:22px 10px 8px;
-    font-size:26px;
-    letter-spacing:6px;
-  }
+  body{font-family:Arial;background:#f4f4f4;text-align:center;margin:0}
+  h1{margin:22px 10px 8px;font-size:26px;letter-spacing:6px}
 
-  .page{
-    display:flex;
-    gap:16px;
-    justify-content:center;
-    align-items:flex-start;
-    padding:12px 12px 24px;
-    flex-wrap:wrap;
-  }
+  .page{display:flex;gap:16px;justify-content:center;align-items:flex-start;padding:12px 12px 24px;flex-wrap:wrap}
 
-  /* ===== 좌측: 도면 ===== */
-  .wrapper{
-    position:relative;
-    width:588px;   /* 84 × 7 */
-    height:500px;
-    margin:0;
-    background:transparent;
-  }
-
+  /* 도면 */
+  .wrapper{position:relative;width:588px;height:500px;margin:0}
   .rect{
-    position:absolute;
-    width:84px;
-    height:126px;              /* 1 : 1.5 */
-    border:1px solid black;
-    background:white;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    z-index:1;
-    box-sizing:border-box;
+    position:absolute;width:84px;height:126px;border:1px solid #000;background:#fff;
+    display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:1;box-sizing:border-box
   }
-
   .circle{
-    position:absolute;
-    width:84px;
-    height:84px;
-    border-radius:50%;
-    background:white;
-    border:1px solid black;    /* 얇게 */
-    transform:translate(-50%,-50%);
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    text-align:center;
-    z-index:10;
-    box-sizing:border-box;
+    position:absolute;width:84px;height:84px;border-radius:50%;background:#fff;border:1px solid #000;
+    transform:translate(-50%,-50%);display:flex;flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;z-index:10;box-sizing:border-box
   }
 
-  .top{
-    font-weight:bold;          /* 곡종 볼드 */
-    font-size:12px;
-    line-height:1.1;
-  }
-  .middle{
-    font-weight:bold;          /* 재고량 볼드 */
-    font-size:12px;
-    line-height:1.1;
-    margin:2px 0;
-  }
-  .bottom{
-    color:#7CFC00;             /* 장치장 연두 */
-    font-size:12px;
-    line-height:1.1;
-  }
-  .blue{ color:blue; }
-  .brown{ color:#8b4513; }
-  .zero{ color:red; }
+  .top{font-weight:bold;font-size:12px;line-height:1.1}
+  .middle{font-weight:bold;font-size:12px;line-height:1.1;margin:2px 0}
+  .bottom{color:#7CFC00;font-size:12px;line-height:1.1}
+  .blue{color:blue}
+  .brown{color:#8b4513}
+  .zero{color:red}
 
-  /* ===== 우측: 입력 패널 ===== */
+  /* 패널 */
   .panel{
-    width:520px;
-    max-width:92vw;
-    background:white;
-    border:1px solid #ddd;
-    border-radius:10px;
-    padding:12px;
-    box-shadow:0 2px 10px rgba(0,0,0,0.05);
-    text-align:left;
+    width:560px;max-width:92vw;background:#fff;border:1px solid #ddd;border-radius:10px;
+    padding:12px;box-shadow:0 2px 10px rgba(0,0,0,0.05);text-align:left
   }
-  .panel h2{
-    margin:4px 0 10px;
-    font-size:16px;
-  }
-  .toolbar{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    align-items:center;
-    margin-bottom:10px;
-  }
+  .panel h2{margin:4px 0 10px;font-size:16px}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
   .toolbar button{
-    border:1px solid #ccc;
-    background:#fafafa;
-    padding:6px 10px;
-    border-radius:8px;
-    cursor:pointer;
+    border:1px solid #ccc;background:#fafafa;padding:6px 10px;border-radius:8px;cursor:pointer
   }
-  .toolbar button:hover{ background:#f0f0f0; }
-  .toolbar .hint{
-    font-size:12px;
-    color:#666;
-  }
+  .toolbar button:hover{background:#f0f0f0}
+  .toolbar .hint{font-size:12px;color:#666}
 
-  .grid{
-    display:grid;
-    grid-template-columns: 90px 1fr 120px;
-    gap:8px 10px;
-    align-items:center;
+  .uploadBox{
+    display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+    padding:10px;border:1px dashed #bbb;border-radius:10px;margin:10px 0 12px
   }
-  .grid .head{
-    font-weight:bold;
-    font-size:13px;
-    padding:6px 0;
-    border-bottom:1px solid #eee;
-  }
+  .uploadBox label{font-size:13px;font-weight:bold}
+  .uploadBox input[type="file"]{font-size:13px}
+  .uploadBox .small{font-size:12px;color:#666}
+
+  .grid{display:grid;grid-template-columns:90px 1fr 120px;gap:8px 10px;align-items:center}
+  .grid .head{font-weight:bold;font-size:13px;padding:6px 0;border-bottom:1px solid #eee}
   .grid input{
-    width:100%;
-    padding:6px 8px;
-    border:1px solid #ccc;
-    border-radius:8px;
-    font-size:13px;
-    box-sizing:border-box;
+    width:100%;padding:6px 8px;border:1px solid #ccc;border-radius:8px;font-size:13px;box-sizing:border-box
   }
-  .grid .loc{
-    font-weight:bold;
-    font-size:13px;
-  }
-  .smallnote{
-    margin-top:10px;
-    font-size:12px;
-    color:#666;
-    line-height:1.4;
-  }
+  .grid .loc{font-weight:bold;font-size:13px}
+
+  .smallnote{margin-top:10px;font-size:12px;color:#666;line-height:1.4}
 </style>
 </head>
 
@@ -162,159 +69,138 @@
   <div class="wrapper" id="container"></div>
 
   <div class="panel">
-    <h2>장치장별 입력 (입력 즉시 화면 반영)</h2>
+    <h2>장치장별 입력 / 파일 업로드</h2>
 
     <div class="toolbar">
-      <button id="btnSave">저장(브라우저에 유지)</button>
+      <button id="btnSave">저장(브라우저 유지)</button>
       <button id="btnLoad">불러오기</button>
       <button id="btnReset">초기값으로</button>
-      <span class="hint">※ 저장하면 같은 PC/브라우저에서는 새로고침해도 유지됩니다.</span>
+      <span class="hint">※ 저장은 같은 PC/브라우저에서만 유지됩니다.</span>
+    </div>
+
+    <!-- ✅ 엑셀 업로드 -->
+    <div class="uploadBox">
+      <label>엑셀 업로드:</label>
+      <input id="fileInput" type="file" accept=".xlsx,.xls" />
+      <span class="small">업로드 즉시 Sheet3(3번째 시트)에서 장치장/곡종/재고량을 읽어 반영합니다.</span>
     </div>
 
     <div class="grid" id="formGrid">
       <div class="head">장치장</div>
       <div class="head">곡종</div>
       <div class="head">재고량</div>
-      <!-- rows injected -->
     </div>
 
     <div class="smallnote">
       - 재고량은 <b>정수</b>만 표시(소수점 버림).<br>
       - 재고량이 <b>0</b>이면 빨간색으로 표시됩니다.<br>
-      - 곡종 색상: WASW/WASWP/WUSH(파랑), WCRS/WNS/WUR(갈색)
+      - 곡종 색상: WASW/WASWP/WUSH(파랑), WCRS/WNS/WUR(갈색)<br>
+      - 엑셀 열 이름이 <b>장치장</b>, <b>곡종</b>, <b>재고량</b>이면 자동 인식됩니다.
+      (혹시 열 이름이 다르면 아래 코드에서 매핑만 바꾸면 됩니다.)
     </div>
   </div>
 </div>
 
-<script>
-/* ====== 레이아웃 파라미터 ====== */
-const rectW = 84;
-const rectH = 126;                 // 1 : 1.5
-const circleSize = 84;
-const circleOffset = circleSize / 2;
+<!-- ✅ XLSX 라이브러리(브라우저에서 엑셀 읽기) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-/* ====== 고정 배치 ====== */
+<script>
+/* ===== 레이아웃 ===== */
+const rectW = 84, rectH = 126, circleSize = 84, circleOffset = circleSize/2;
+
 const topCircles    = ["A101","A102","A103","A104","A105","A106"];
 const row1Rects     = ["A201","A202","A203","A204","A205","A206","A207"];
 const midCircles    = ["A301","A302","A303","A304","A305","A306"];
 const row2Rects     = ["A401","A402","A403","A404","A405","A406","A407"];
 const bottomCircles = ["A501","A502","A503","A504","A505","A506"];
+const allLocations = [...topCircles, ...row1Rects, ...midCircles, ...row2Rects, ...bottomCircles];
 
-const allLocations = [
-  ...topCircles, ...row1Rects, ...midCircles, ...row2Rects, ...bottomCircles
-];
+const STORAGE_KEY = "inventory_report_data_v2";
 
-/* ====== 초기값(엑셀 반영값) ====== */
+/* 초기값(엑셀 기본값) */
 const defaultData = {
-  "A101":{grain:"WUR",qty:1600},
-  "A102":{grain:"WCRS",qty:1700.557},
-  "A103":{grain:"WASW",qty:1360.392},
-  "A104":{grain:"WASWP",qty:1403.039},
-  "A105":{grain:"WUR",qty:1700.915},
-  "A106":{grain:"WNS",qty:1637.684},
+  "A101":{grain:"WUR",qty:1600},"A102":{grain:"WCRS",qty:1700.557},"A103":{grain:"WASW",qty:1360.392},
+  "A104":{grain:"WASWP",qty:1403.039},"A105":{grain:"WUR",qty:1700.915},"A106":{grain:"WNS",qty:1637.684},
 
-  "A201":{grain:"WUSL9.0",qty:146.96},
-  "A202":{grain:"WUSH",qty:420},
-  "A203":{grain:"WUR",qty:420.679},
-  "A204":{grain:"WUR",qty:420.233},
-  "A205":{grain:"WUSH",qty:420},
-  "A206":{grain:"WUSL9.0",qty:419.86},
+  "A201":{grain:"WUSL9.0",qty:146.96},"A202":{grain:"WUSH",qty:420},"A203":{grain:"WUR",qty:420.679},
+  "A204":{grain:"WUR",qty:420.233},"A205":{grain:"WUSH",qty:420},"A206":{grain:"WUSL9.0",qty:419.86},
   "A207":{grain:"WUR",qty:158.126},
 
-  "A301":{grain:"WUSH",qty:864.386},
-  "A302":{grain:"WUSH",qty:1695.227},
-  "A303":{grain:"WUSH",qty:1671.185},
-  "A304":{grain:"WUSH",qty:1690.285},
-  "A305":{grain:"WNS",qty:1697.176},
-  "A306":{grain:"WUR",qty:1701.166},
+  "A301":{grain:"WUSH",qty:864.386},"A302":{grain:"WUSH",qty:1695.227},"A303":{grain:"WUSH",qty:1671.185},
+  "A304":{grain:"WUSH",qty:1690.285},"A305":{grain:"WNS",qty:1697.176},"A306":{grain:"WUR",qty:1701.166},
 
-  "A401":{grain:"WCRS",qty:170},
-  "A402":{grain:"WUSH",qty:410},
-  "A403":{grain:"WUSH",qty:0},
-  "A404":{grain:"WNS",qty:419.287},
-  "A405":{grain:"WUSH",qty:0},
-  "A406":{grain:"WUSH",qty:0},
+  "A401":{grain:"WCRS",qty:170},"A402":{grain:"WUSH",qty:410},"A403":{grain:"WUSH",qty:0},
+  "A404":{grain:"WNS",qty:419.287},"A405":{grain:"WUSH",qty:0},"A406":{grain:"WUSH",qty:0},
   "A407":{grain:"WNS",qty:170},
 
-  "A501":{grain:"WUSH",qty:1557.437},
-  "A502":{grain:"WNS",qty:1703.834},
-  "A503":{grain:"WUSH",qty:1645.29},
-  "A504":{grain:"WCRS",qty:956.294},
-  "A505":{grain:"WASWP",qty:1696.74},
-  "A506":{grain:"WUR",qty:1700.906}
+  "A501":{grain:"WUSH",qty:1557.437},"A502":{grain:"WNS",qty:1703.834},"A503":{grain:"WUSH",qty:1645.29},
+  "A504":{grain:"WCRS",qty:956.294},"A505":{grain:"WASWP",qty:1696.74},"A506":{grain:"WUR",qty:1700.906}
 };
 
-/* 현재 데이터(수정 대상) */
+function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
 let data = deepClone(defaultData);
 
-/* ====== 유틸 ====== */
-function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
-
+/* 색상 */
 function getColor(grain){
   if(["WASW","WASWP","WUSH"].includes(grain)) return "blue";
   if(["WCRS","WNS","WUR"].includes(grain)) return "brown";
   return "";
 }
-
 function qtyToInt(q){
   const n = Number(q);
   if(Number.isNaN(n)) return 0;
   return Math.floor(n);
 }
 
-/* ====== 도면 렌더 ====== */
+/* ===== 도면 렌더 ===== */
 const container = document.getElementById("container");
-const nodeByLoc = new Map(); // location -> {topEl, midEl, botEl}
+const nodeByLoc = new Map();
 
-function makeNodeHTML(location){
+function createNodeHTML(location){
   const d = data[location] || {grain:"", qty:0};
   const g = (d.grain ?? "").trim();
   const qInt = qtyToInt(d.qty);
-  const colorClass = getColor(g);
-  const zeroClass = (qInt === 0) ? "zero" : "";
   return {
-    top: { text: g || "-", cls: colorClass },
-    mid: { text: qInt.toLocaleString(), cls: zeroClass },
-    bot: { text: location, cls: "" }
+    gText: g || "-",
+    gCls: getColor(g),
+    qText: qInt.toLocaleString(),
+    qCls: (qInt === 0 ? "zero" : ""),
+    locText: location
   };
 }
 
 function createRect(row,col,location){
-  const rect = document.createElement("div");
-  rect.className="rect";
-  rect.style.left = (col * rectW) + "px";
-  rect.style.top  = (row * rectH + circleOffset) + "px";
+  const el = document.createElement("div");
+  el.className = "rect";
+  el.style.left = (col*rectW) + "px";
+  el.style.top  = (row*rectH + circleOffset) + "px";
 
-  const parts = makeNodeHTML(location);
-
-  rect.innerHTML = `
-    <div class="top ${parts.top.cls}">${parts.top.text}</div>
-    <div class="middle ${parts.mid.cls}">${parts.mid.text}</div>
-    <div class="bottom">${parts.bot.text}</div>
+  const p = createNodeHTML(location);
+  el.innerHTML = `
+    <div class="top ${p.gCls}">${p.gText}</div>
+    <div class="middle ${p.qCls}">${p.qText}</div>
+    <div class="bottom">${p.locText}</div>
   `;
-
-  container.appendChild(rect);
-  const [topEl, midEl, botEl] = rect.children;
-  nodeByLoc.set(location, { topEl, midEl, botEl });
+  container.appendChild(el);
+  const [topEl, midEl, botEl] = el.children;
+  nodeByLoc.set(location, {topEl, midEl, botEl});
 }
 
 function createCircle(row,col,location){
-  const circle = document.createElement("div");
-  circle.className="circle";
-  circle.style.left = (col * rectW) + "px";
-  circle.style.top  = (row * rectH + circleOffset) + "px";
+  const el = document.createElement("div");
+  el.className = "circle";
+  el.style.left = (col*rectW) + "px";
+  el.style.top  = (row*rectH + circleOffset) + "px";
 
-  const parts = makeNodeHTML(location);
-
-  circle.innerHTML = `
-    <div class="top ${parts.top.cls}">${parts.top.text}</div>
-    <div class="middle ${parts.mid.cls}">${parts.mid.text}</div>
-    <div class="bottom">${parts.bot.text}</div>
+  const p = createNodeHTML(location);
+  el.innerHTML = `
+    <div class="top ${p.gCls}">${p.gText}</div>
+    <div class="middle ${p.qCls}">${p.qText}</div>
+    <div class="bottom">${p.locText}</div>
   `;
-
-  container.appendChild(circle);
-  const [topEl, midEl, botEl] = circle.children;
-  nodeByLoc.set(location, { topEl, midEl, botEl });
+  container.appendChild(el);
+  const [topEl, midEl, botEl] = el.children;
+  nodeByLoc.set(location, {topEl, midEl, botEl});
 }
 
 function renderAll(){
@@ -328,7 +214,6 @@ function renderAll(){
   bottomCircles.forEach((loc,i)=> createCircle(2, i+1, loc));
 }
 
-/* 특정 장치장만 즉시 업데이트 */
 function updateNode(location){
   const node = nodeByLoc.get(location);
   if(!node) return;
@@ -337,34 +222,30 @@ function updateNode(location){
   const g = (d.grain ?? "").trim();
   const qInt = qtyToInt(d.qty);
 
-  // top
   node.topEl.textContent = g || "-";
   node.topEl.className = "top " + getColor(g);
 
-  // middle
   node.midEl.textContent = qInt.toLocaleString();
-  node.midEl.className = "middle " + (qInt === 0 ? "zero" : "");
+  node.midEl.className = "middle " + (qInt===0 ? "zero" : "");
 
-  // bottom
-  node.botEl.textContent = location; // 고정
+  node.botEl.textContent = location;
 }
 
-/* ====== 입력 패널 생성 ====== */
+/* ===== 입력 폼 ===== */
 const formGrid = document.getElementById("formGrid");
 
 function buildForm(){
-  // 기존 rows 삭제(헤더 3개 제외)
   while(formGrid.children.length > 3) formGrid.removeChild(formGrid.lastChild);
 
   allLocations.forEach(loc=>{
-    const d = data[loc] || {grain:"", qty:0};
+    if(!data[loc]) data[loc] = {grain:"", qty:0};
 
     const locDiv = document.createElement("div");
     locDiv.className = "loc";
     locDiv.textContent = loc;
 
     const grainInput = document.createElement("input");
-    grainInput.value = d.grain ?? "";
+    grainInput.value = data[loc].grain ?? "";
     grainInput.placeholder = "예: WASW";
     grainInput.addEventListener("input", ()=>{
       data[loc].grain = grainInput.value.trim();
@@ -372,13 +253,12 @@ function buildForm(){
     });
 
     const qtyInput = document.createElement("input");
-    qtyInput.value = String(qtyToInt(d.qty));
+    qtyInput.value = String(qtyToInt(data[loc].qty));
     qtyInput.placeholder = "정수";
     qtyInput.inputMode = "numeric";
     qtyInput.addEventListener("input", ()=>{
-      // 입력 중 공백/문자여도 0 처리
       const raw = qtyInput.value.replace(/,/g,"");
-      data[loc].qty = raw === "" ? 0 : Number(raw);
+      data[loc].qty = (raw === "" ? 0 : Number(raw));
       updateNode(loc);
     });
 
@@ -388,52 +268,107 @@ function buildForm(){
   });
 }
 
-/* ====== 저장/불러오기(브라우저 localStorage) ====== */
-const STORAGE_KEY = "inventory_report_data_v1";
-
+/* ===== 저장/불러오기 ===== */
 document.getElementById("btnSave").addEventListener("click", ()=>{
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  alert("저장 완료! (이 브라우저에서 새로고침해도 유지됩니다)");
+  alert("저장 완료!");
 });
-
 document.getElementById("btnLoad").addEventListener("click", ()=>{
   const saved = localStorage.getItem(STORAGE_KEY);
-  if(!saved){
-    alert("저장된 데이터가 없습니다.");
-    return;
-  }
+  if(!saved) return alert("저장된 데이터가 없습니다.");
   try{
     const obj = JSON.parse(saved);
-    // 누락 키 보강
     allLocations.forEach(loc=>{
       if(!obj[loc]) obj[loc] = {grain:"", qty:0};
-      if(obj[loc].grain == null) obj[loc].grain = "";
-      if(obj[loc].qty == null) obj[loc].qty = 0;
     });
     data = obj;
-    renderAll();
-    buildForm();
+    renderAll(); buildForm();
     alert("불러오기 완료!");
   }catch(e){
-    alert("불러오기 실패: 저장된 데이터 형식이 이상합니다.");
+    alert("불러오기 실패: 저장 형식 오류");
+  }
+});
+document.getElementById("btnReset").addEventListener("click", ()=>{
+  data = deepClone(defaultData);
+  renderAll(); buildForm();
+});
+
+/* ===== ✅ 엑셀 업로드 처리 =====
+   - 기본: 3번째 시트(Sheet3) 사용
+   - 헤더: 장치장 / 곡종 / 재고량 컬럼을 찾음 */
+document.getElementById("fileInput").addEventListener("change", async (e)=>{
+  const file = e.target.files?.[0];
+  if(!file) return;
+
+  try{
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:"array"});
+    if(wb.SheetNames.length < 3){
+      alert("엑셀에 시트가 3개 미만입니다. Sheet3(3번째 시트)가 필요합니다.");
+      return;
+    }
+
+    const sheetName = wb.SheetNames[2]; // 3번째 시트
+    const ws = wb.Sheets[sheetName];
+
+    // row objects
+    const rows = XLSX.utils.sheet_to_json(ws, {defval:"", raw:true});
+
+    // 컬럼 이름 후보(혹시 다른 이름일 때 대비)
+    const COL_LOC  = pickCol(rows, ["장치장","Location","loc","장치장코드","장치"]);
+    const COL_GRAIN= pickCol(rows, ["곡종","품목","grain","곡종명","품목명"]);
+    const COL_QTY  = pickCol(rows, ["재고량","수량","qty","수량(재고)","재고"]);
+
+    if(!COL_LOC || !COL_GRAIN || !COL_QTY){
+      alert("Sheet3에서 열 이름을 찾지 못했습니다.\n필요: 장치장 / 곡종 / 재고량\n(현재 시트의 헤더를 확인해주세요)");
+      return;
+    }
+
+    // 새 데이터 생성(기존 data를 덮어쓰기: 지정된 장치장만 업데이트)
+    rows.forEach(r=>{
+      const loc = String(r[COL_LOC]).trim();
+      if(!allLocations.includes(loc)) return;
+
+      const grain = String(r[COL_GRAIN]).trim();
+      const qty = r[COL_QTY];
+
+      if(!data[loc]) data[loc] = {grain:"", qty:0};
+      data[loc].grain = grain;
+      data[loc].qty = qty;
+    });
+
+    // 화면 갱신
+    renderAll();
+    buildForm();
+
+    alert(`업로드 반영 완료! (시트: ${sheetName})`);
+  }catch(err){
+    console.error(err);
+    alert("엑셀 읽기 실패: 파일이 손상되었거나 형식이 다를 수 있습니다.");
+  }finally{
+    // 같은 파일 다시 올릴 수 있게 input 초기화
+    e.target.value = "";
   }
 });
 
-document.getElementById("btnReset").addEventListener("click", ()=>{
-  data = deepClone(defaultData);
-  renderAll();
-  buildForm();
-});
+function pickCol(rows, candidates){
+  if(!rows || rows.length === 0) return null;
+  const keys = Object.keys(rows[0] || {});
+  for(const c of candidates){
+    const found = keys.find(k => String(k).trim() === c);
+    if(found) return found;
+  }
+  return null;
+}
 
-/* ====== 최초 실행 ====== */
+/* ===== 최초 실행 ===== */
 (function init(){
-  // 저장된 값이 있으면 자동 적용
   const saved = localStorage.getItem(STORAGE_KEY);
   if(saved){
     try{
       const obj = JSON.parse(saved);
       allLocations.forEach(loc=>{
-        if(!obj[loc]) obj[loc] = {grain:"", qty:0};
+        if(!obj[loc]) obj[loc] = deepClone(defaultData[loc] || {grain:"", qty:0});
       });
       data = obj;
     }catch(e){
@@ -444,5 +379,6 @@ document.getElementById("btnReset").addEventListener("click", ()=>{
   buildForm();
 })();
 </script>
+
 </body>
 </html>
