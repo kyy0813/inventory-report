@@ -1,34 +1,45 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>일일 재고 현황표</title>
 
 <style>
-body{
+  body{
     font-family: Arial;
     background:#f4f4f4;
     text-align:center;
-}
-
-h1{
-    margin:30px;
-    font-size:28px;
+    margin:0;
+  }
+  h1{
+    margin:22px 10px 8px;
+    font-size:26px;
     letter-spacing:6px;
-}
+  }
 
-.wrapper{
+  .page{
+    display:flex;
+    gap:16px;
+    justify-content:center;
+    align-items:flex-start;
+    padding:12px 12px 24px;
+    flex-wrap:wrap;
+  }
+
+  /* ===== 좌측: 도면 ===== */
+  .wrapper{
     position:relative;
     width:588px;   /* 84 × 7 */
     height:500px;
-    margin:auto;
-}
+    margin:0;
+    background:transparent;
+  }
 
-/* 직사각형 */
-.rect{
+  .rect{
     position:absolute;
-    width:84px;        /* 원과 동일 */
-    height:126px;      /* 1 : 1.5 비율 */
+    width:84px;
+    height:126px;              /* 1 : 1.5 */
     border:1px solid black;
     background:white;
     display:flex;
@@ -36,16 +47,16 @@ h1{
     justify-content:center;
     align-items:center;
     z-index:1;
-}
+    box-sizing:border-box;
+  }
 
-/* 원 */
-.circle{
+  .circle{
     position:absolute;
-    width:84px;        /* 살짝 축소 */
+    width:84px;
     height:84px;
     border-radius:50%;
-    background:white;  /* 🔹 흰색 채움 */
-    border:1px solid black;  /* 🔹 얇은 테두리 */
+    background:white;
+    border:1px solid black;    /* 얇게 */
     transform:translate(-50%,-50%);
     display:flex;
     flex-direction:column;
@@ -53,153 +64,385 @@ h1{
     align-items:center;
     text-align:center;
     z-index:10;
-}
+    box-sizing:border-box;
+  }
 
-/* 텍스트 */
-.top{
-    font-weight:bold;
+  .top{
+    font-weight:bold;          /* 곡종 볼드 */
     font-size:12px;
-}
-
-.middle{
-    font-weight:bold;
+    line-height:1.1;
+  }
+  .middle{
+    font-weight:bold;          /* 재고량 볼드 */
     font-size:12px;
+    line-height:1.1;
     margin:2px 0;
-}
-
-.bottom{
-    color:#7CFC00;
+  }
+  .bottom{
+    color:#7CFC00;             /* 장치장 연두 */
     font-size:12px;
-}
+    line-height:1.1;
+  }
+  .blue{ color:blue; }
+  .brown{ color:#8b4513; }
+  .zero{ color:red; }
 
-/* 곡종 색상 */
-.blue{ color:blue; }
-.brown{ color:#8b4513; }
+  /* ===== 우측: 입력 패널 ===== */
+  .panel{
+    width:520px;
+    max-width:92vw;
+    background:white;
+    border:1px solid #ddd;
+    border-radius:10px;
+    padding:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.05);
+    text-align:left;
+  }
+  .panel h2{
+    margin:4px 0 10px;
+    font-size:16px;
+  }
+  .toolbar{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  .toolbar button{
+    border:1px solid #ccc;
+    background:#fafafa;
+    padding:6px 10px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .toolbar button:hover{ background:#f0f0f0; }
+  .toolbar .hint{
+    font-size:12px;
+    color:#666;
+  }
 
-/* 재고량 0 */
-.zero{
-    color:red;
-}
-
+  .grid{
+    display:grid;
+    grid-template-columns: 90px 1fr 120px;
+    gap:8px 10px;
+    align-items:center;
+  }
+  .grid .head{
+    font-weight:bold;
+    font-size:13px;
+    padding:6px 0;
+    border-bottom:1px solid #eee;
+  }
+  .grid input{
+    width:100%;
+    padding:6px 8px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    font-size:13px;
+    box-sizing:border-box;
+  }
+  .grid .loc{
+    font-weight:bold;
+    font-size:13px;
+  }
+  .smallnote{
+    margin-top:10px;
+    font-size:12px;
+    color:#666;
+    line-height:1.4;
+  }
 </style>
 </head>
 
 <body>
-
 <h1>일 일 재 고 현 황 표</h1>
 
-<div class="wrapper" id="container"></div>
+<div class="page">
+  <div class="wrapper" id="container"></div>
+
+  <div class="panel">
+    <h2>장치장별 입력 (입력 즉시 화면 반영)</h2>
+
+    <div class="toolbar">
+      <button id="btnSave">저장(브라우저에 유지)</button>
+      <button id="btnLoad">불러오기</button>
+      <button id="btnReset">초기값으로</button>
+      <span class="hint">※ 저장하면 같은 PC/브라우저에서는 새로고침해도 유지됩니다.</span>
+    </div>
+
+    <div class="grid" id="formGrid">
+      <div class="head">장치장</div>
+      <div class="head">곡종</div>
+      <div class="head">재고량</div>
+      <!-- rows injected -->
+    </div>
+
+    <div class="smallnote">
+      - 재고량은 <b>정수</b>만 표시(소수점 버림).<br>
+      - 재고량이 <b>0</b>이면 빨간색으로 표시됩니다.<br>
+      - 곡종 색상: WASW/WASWP/WUSH(파랑), WCRS/WNS/WUR(갈색)
+    </div>
+  </div>
+</div>
 
 <script>
-
+/* ====== 레이아웃 파라미터 ====== */
 const rectW = 84;
-const rectH = 126;
+const rectH = 126;                 // 1 : 1.5
 const circleSize = 84;
 const circleOffset = circleSize / 2;
 
-const container = document.getElementById("container");
+/* ====== 고정 배치 ====== */
+const topCircles    = ["A101","A102","A103","A104","A105","A106"];
+const row1Rects     = ["A201","A202","A203","A204","A205","A206","A207"];
+const midCircles    = ["A301","A302","A303","A304","A305","A306"];
+const row2Rects     = ["A401","A402","A403","A404","A405","A406","A407"];
+const bottomCircles = ["A501","A502","A503","A504","A505","A506"];
 
-/* 엑셀 데이터 */
-const excelData = {
-"A101":{grain:"WUR",qty:1600},
-"A102":{grain:"WCRS",qty:1700.557},
-"A103":{grain:"WASW",qty:1360.392},
-"A104":{grain:"WASWP",qty:1403.039},
-"A105":{grain:"WUR",qty:1700.915},
-"A106":{grain:"WNS",qty:1637.684},
+const allLocations = [
+  ...topCircles, ...row1Rects, ...midCircles, ...row2Rects, ...bottomCircles
+];
 
-"A201":{grain:"WUSL9.0",qty:146.96},
-"A202":{grain:"WUSH",qty:420},
-"A203":{grain:"WUR",qty:420.679},
-"A204":{grain:"WUR",qty:420.233},
-"A205":{grain:"WUSH",qty:420},
-"A206":{grain:"WUSL9.0",qty:419.86},
-"A207":{grain:"WUR",qty:158.126},
+/* ====== 초기값(엑셀 반영값) ====== */
+const defaultData = {
+  "A101":{grain:"WUR",qty:1600},
+  "A102":{grain:"WCRS",qty:1700.557},
+  "A103":{grain:"WASW",qty:1360.392},
+  "A104":{grain:"WASWP",qty:1403.039},
+  "A105":{grain:"WUR",qty:1700.915},
+  "A106":{grain:"WNS",qty:1637.684},
 
-"A301":{grain:"WUSH",qty:864.386},
-"A302":{grain:"WUSH",qty:1695.227},
-"A303":{grain:"WUSH",qty:1671.185},
-"A304":{grain:"WUSH",qty:1690.285},
-"A305":{grain:"WNS",qty:1697.176},
-"A306":{grain:"WUR",qty:1701.166},
+  "A201":{grain:"WUSL9.0",qty:146.96},
+  "A202":{grain:"WUSH",qty:420},
+  "A203":{grain:"WUR",qty:420.679},
+  "A204":{grain:"WUR",qty:420.233},
+  "A205":{grain:"WUSH",qty:420},
+  "A206":{grain:"WUSL9.0",qty:419.86},
+  "A207":{grain:"WUR",qty:158.126},
 
-"A401":{grain:"WCRS",qty:170},
-"A402":{grain:"WUSH",qty:410},
-"A403":{grain:"WUSH",qty:0},
-"A404":{grain:"WNS",qty:419.287},
-"A405":{grain:"WUSH",qty:0},
-"A406":{grain:"WUSH",qty:0},
-"A407":{grain:"WNS",qty:170},
+  "A301":{grain:"WUSH",qty:864.386},
+  "A302":{grain:"WUSH",qty:1695.227},
+  "A303":{grain:"WUSH",qty:1671.185},
+  "A304":{grain:"WUSH",qty:1690.285},
+  "A305":{grain:"WNS",qty:1697.176},
+  "A306":{grain:"WUR",qty:1701.166},
 
-"A501":{grain:"WUSH",qty:1557.437},
-"A502":{grain:"WNS",qty:1703.834},
-"A503":{grain:"WUSH",qty:1645.29},
-"A504":{grain:"WCRS",qty:956.294},
-"A505":{grain:"WASWP",qty:1696.74},
-"A506":{grain:"WUR",qty:1700.906}
+  "A401":{grain:"WCRS",qty:170},
+  "A402":{grain:"WUSH",qty:410},
+  "A403":{grain:"WUSH",qty:0},
+  "A404":{grain:"WNS",qty:419.287},
+  "A405":{grain:"WUSH",qty:0},
+  "A406":{grain:"WUSH",qty:0},
+  "A407":{grain:"WNS",qty:170},
+
+  "A501":{grain:"WUSH",qty:1557.437},
+  "A502":{grain:"WNS",qty:1703.834},
+  "A503":{grain:"WUSH",qty:1645.29},
+  "A504":{grain:"WCRS",qty:956.294},
+  "A505":{grain:"WASWP",qty:1696.74},
+  "A506":{grain:"WUR",qty:1700.906}
 };
 
+/* 현재 데이터(수정 대상) */
+let data = deepClone(defaultData);
+
+/* ====== 유틸 ====== */
+function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
+
 function getColor(grain){
-    if(["WASW","WASWP","WUSH"].includes(grain)) return "blue";
-    if(["WCRS","WNS","WUR"].includes(grain)) return "brown";
-    return "";
+  if(["WASW","WASWP","WUSH"].includes(grain)) return "blue";
+  if(["WCRS","WNS","WUR"].includes(grain)) return "brown";
+  return "";
+}
+
+function qtyToInt(q){
+  const n = Number(q);
+  if(Number.isNaN(n)) return 0;
+  return Math.floor(n);
+}
+
+/* ====== 도면 렌더 ====== */
+const container = document.getElementById("container");
+const nodeByLoc = new Map(); // location -> {topEl, midEl, botEl}
+
+function makeNodeHTML(location){
+  const d = data[location] || {grain:"", qty:0};
+  const g = (d.grain ?? "").trim();
+  const qInt = qtyToInt(d.qty);
+  const colorClass = getColor(g);
+  const zeroClass = (qInt === 0) ? "zero" : "";
+  return {
+    top: { text: g || "-", cls: colorClass },
+    mid: { text: qInt.toLocaleString(), cls: zeroClass },
+    bot: { text: location, cls: "" }
+  };
 }
 
 function createRect(row,col,location){
-    const d = excelData[location];
-    const qtyValue = Math.floor(d.qty);
+  const rect = document.createElement("div");
+  rect.className="rect";
+  rect.style.left = (col * rectW) + "px";
+  rect.style.top  = (row * rectH + circleOffset) + "px";
 
-    const rect=document.createElement("div");
-    rect.className="rect";
-    rect.style.left=(col*rectW)+"px";
-    rect.style.top=(row*rectH + circleOffset)+"px";
+  const parts = makeNodeHTML(location);
 
-    rect.innerHTML=`
-        <div class="top ${getColor(d.grain)}">${d.grain}</div>
-        <div class="middle ${qtyValue===0 ? 'zero' : ''}">
-            ${qtyValue.toLocaleString()}
-        </div>
-        <div class="bottom">${location}</div>
-    `;
-    container.appendChild(rect);
+  rect.innerHTML = `
+    <div class="top ${parts.top.cls}">${parts.top.text}</div>
+    <div class="middle ${parts.mid.cls}">${parts.mid.text}</div>
+    <div class="bottom">${parts.bot.text}</div>
+  `;
+
+  container.appendChild(rect);
+  const [topEl, midEl, botEl] = rect.children;
+  nodeByLoc.set(location, { topEl, midEl, botEl });
 }
 
 function createCircle(row,col,location){
-    const d = excelData[location];
-    const qtyValue = Math.floor(d.qty);
+  const circle = document.createElement("div");
+  circle.className="circle";
+  circle.style.left = (col * rectW) + "px";
+  circle.style.top  = (row * rectH + circleOffset) + "px";
 
-    const circle=document.createElement("div");
-    circle.className="circle";
-    circle.style.left=(col*rectW)+"px";
-    circle.style.top=(row*rectH + circleOffset)+"px";
+  const parts = makeNodeHTML(location);
 
-    circle.innerHTML=`
-        <div class="top ${getColor(d.grain)}">${d.grain}</div>
-        <div class="middle ${qtyValue===0 ? 'zero' : ''}">
-            ${qtyValue.toLocaleString()}
-        </div>
-        <div class="bottom">${location}</div>
-    `;
-    container.appendChild(circle);
+  circle.innerHTML = `
+    <div class="top ${parts.top.cls}">${parts.top.text}</div>
+    <div class="middle ${parts.mid.cls}">${parts.mid.text}</div>
+    <div class="bottom">${parts.bot.text}</div>
+  `;
+
+  container.appendChild(circle);
+  const [topEl, midEl, botEl] = circle.children;
+  nodeByLoc.set(location, { topEl, midEl, botEl });
 }
 
-/* 배치 */
-["A101","A102","A103","A104","A105","A106"]
-.forEach((loc,i)=> createCircle(0,i+1,loc));
+function renderAll(){
+  container.innerHTML = "";
+  nodeByLoc.clear();
 
-["A201","A202","A203","A204","A205","A206","A207"]
-.forEach((loc,i)=> createRect(0,i,loc));
+  topCircles.forEach((loc,i)=> createCircle(0, i+1, loc));
+  row1Rects.forEach((loc,i)=> createRect(0, i, loc));
+  midCircles.forEach((loc,i)=> createCircle(1, i+1, loc));
+  row2Rects.forEach((loc,i)=> createRect(1, i, loc));
+  bottomCircles.forEach((loc,i)=> createCircle(2, i+1, loc));
+}
 
-["A301","A302","A303","A304","A305","A306"]
-.forEach((loc,i)=> createCircle(1,i+1,loc));
+/* 특정 장치장만 즉시 업데이트 */
+function updateNode(location){
+  const node = nodeByLoc.get(location);
+  if(!node) return;
 
-["A401","A402","A403","A404","A405","A406","A407"]
-.forEach((loc,i)=> createRect(1,i,loc));
+  const d = data[location] || {grain:"", qty:0};
+  const g = (d.grain ?? "").trim();
+  const qInt = qtyToInt(d.qty);
 
-["A501","A502","A503","A504","A505","A506"]
-.forEach((loc,i)=> createCircle(2,i+1,loc));
+  // top
+  node.topEl.textContent = g || "-";
+  node.topEl.className = "top " + getColor(g);
 
+  // middle
+  node.midEl.textContent = qInt.toLocaleString();
+  node.midEl.className = "middle " + (qInt === 0 ? "zero" : "");
+
+  // bottom
+  node.botEl.textContent = location; // 고정
+}
+
+/* ====== 입력 패널 생성 ====== */
+const formGrid = document.getElementById("formGrid");
+
+function buildForm(){
+  // 기존 rows 삭제(헤더 3개 제외)
+  while(formGrid.children.length > 3) formGrid.removeChild(formGrid.lastChild);
+
+  allLocations.forEach(loc=>{
+    const d = data[loc] || {grain:"", qty:0};
+
+    const locDiv = document.createElement("div");
+    locDiv.className = "loc";
+    locDiv.textContent = loc;
+
+    const grainInput = document.createElement("input");
+    grainInput.value = d.grain ?? "";
+    grainInput.placeholder = "예: WASW";
+    grainInput.addEventListener("input", ()=>{
+      data[loc].grain = grainInput.value.trim();
+      updateNode(loc);
+    });
+
+    const qtyInput = document.createElement("input");
+    qtyInput.value = String(qtyToInt(d.qty));
+    qtyInput.placeholder = "정수";
+    qtyInput.inputMode = "numeric";
+    qtyInput.addEventListener("input", ()=>{
+      // 입력 중 공백/문자여도 0 처리
+      const raw = qtyInput.value.replace(/,/g,"");
+      data[loc].qty = raw === "" ? 0 : Number(raw);
+      updateNode(loc);
+    });
+
+    formGrid.appendChild(locDiv);
+    formGrid.appendChild(grainInput);
+    formGrid.appendChild(qtyInput);
+  });
+}
+
+/* ====== 저장/불러오기(브라우저 localStorage) ====== */
+const STORAGE_KEY = "inventory_report_data_v1";
+
+document.getElementById("btnSave").addEventListener("click", ()=>{
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  alert("저장 완료! (이 브라우저에서 새로고침해도 유지됩니다)");
+});
+
+document.getElementById("btnLoad").addEventListener("click", ()=>{
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if(!saved){
+    alert("저장된 데이터가 없습니다.");
+    return;
+  }
+  try{
+    const obj = JSON.parse(saved);
+    // 누락 키 보강
+    allLocations.forEach(loc=>{
+      if(!obj[loc]) obj[loc] = {grain:"", qty:0};
+      if(obj[loc].grain == null) obj[loc].grain = "";
+      if(obj[loc].qty == null) obj[loc].qty = 0;
+    });
+    data = obj;
+    renderAll();
+    buildForm();
+    alert("불러오기 완료!");
+  }catch(e){
+    alert("불러오기 실패: 저장된 데이터 형식이 이상합니다.");
+  }
+});
+
+document.getElementById("btnReset").addEventListener("click", ()=>{
+  data = deepClone(defaultData);
+  renderAll();
+  buildForm();
+});
+
+/* ====== 최초 실행 ====== */
+(function init(){
+  // 저장된 값이 있으면 자동 적용
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if(saved){
+    try{
+      const obj = JSON.parse(saved);
+      allLocations.forEach(loc=>{
+        if(!obj[loc]) obj[loc] = {grain:"", qty:0};
+      });
+      data = obj;
+    }catch(e){
+      data = deepClone(defaultData);
+    }
+  }
+  renderAll();
+  buildForm();
+})();
 </script>
-
 </body>
 </html>
