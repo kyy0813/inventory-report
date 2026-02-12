@@ -11,15 +11,17 @@
 
   .page{display:flex;gap:16px;justify-content:center;align-items:flex-start;padding:12px 12px 24px;flex-wrap:wrap}
 
-  /* 도면 */
+  /* ===== 도면 ===== */
   .wrapper{position:relative;width:588px;height:500px;margin:0}
   .rect{
     position:absolute;width:84px;height:126px;border:1px solid #000;background:#fff;
     display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:1;box-sizing:border-box
   }
   .circle{
-    position:absolute;width:84px;height:84px;border-radius:50%;background:#fff;border:1px solid #000;
-    transform:translate(-50%,-50%);display:flex;flex-direction:column;justify-content:center;align-items:center;
+    position:absolute;width:84px;height:84px;border-radius:50%;
+    background:#fff;border:1px solid #000;
+    transform:translate(-50%,-50%);
+    display:flex;flex-direction:column;justify-content:center;align-items:center;
     text-align:center;z-index:10;box-sizing:border-box
   }
 
@@ -30,12 +32,21 @@
   .brown{color:#8b4513}
   .zero{color:red}
 
-  /* 패널 */
+  /* ===== 패널 ===== */
   .panel{
-    width:560px;max-width:92vw;background:#fff;border:1px solid #ddd;border-radius:10px;
+    width:600px;max-width:92vw;background:#fff;border:1px solid #ddd;border-radius:10px;
     padding:12px;box-shadow:0 2px 10px rgba(0,0,0,0.05);text-align:left
   }
   .panel h2{margin:4px 0 10px;font-size:16px}
+
+  .tabs{display:flex;gap:8px;margin:6px 0 10px;flex-wrap:wrap}
+  .tab{
+    border:1px solid #ccc;background:#fafafa;padding:6px 10px;border-radius:999px;cursor:pointer;font-size:13px
+  }
+  .tab.active{background:#eaeaea;border-color:#aaa;font-weight:bold}
+  .section{display:none}
+  .section.active{display:block}
+
   .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
   .toolbar button{
     border:1px solid #ccc;background:#fafafa;padding:6px 10px;border-radius:8px;cursor:pointer
@@ -59,6 +70,30 @@
   .grid .loc{font-weight:bold;font-size:13px}
 
   .smallnote{margin-top:10px;font-size:12px;color:#666;line-height:1.4}
+
+  /* ===== 히스토리 ===== */
+  .historyBar{
+    display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0 10px
+  }
+  .historyBar button{
+    border:1px solid #ccc;background:#fafafa;padding:6px 10px;border-radius:8px;cursor:pointer
+  }
+  .historyBar button:hover{background:#f0f0f0}
+  .historyBar .meta{font-size:12px;color:#666}
+
+  .historyList{
+    max-height:360px;overflow:auto;border:1px solid #eee;border-radius:10px;padding:8px;background:#fcfcfc
+  }
+  .hItem{
+    border-bottom:1px solid #eee;padding:8px 6px;display:flex;flex-direction:column;gap:3px
+  }
+  .hItem:last-child{border-bottom:none}
+  .hTop{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#555}
+  .badge{padding:2px 8px;border-radius:999px;background:#eee;font-size:12px}
+  .badge.upload{background:#e6f7ff}
+  .badge.manual{background:#fff7e6}
+  .hBody{font-size:13px}
+  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
 </style>
 </head>
 
@@ -69,43 +104,66 @@
   <div class="wrapper" id="container"></div>
 
   <div class="panel">
-    <h2>장치장별 입력 / 파일 업로드</h2>
+    <h2>엑셀 업로드 / 즉시 반영 / 수정 히스토리</h2>
 
-    <div class="toolbar">
-      <button id="btnSave">저장(브라우저 유지)</button>
-      <button id="btnLoad">불러오기</button>
-      <button id="btnReset">초기값으로</button>
-      <span class="hint">※ 저장은 같은 PC/브라우저에서만 유지됩니다.</span>
+    <div class="tabs">
+      <button class="tab active" data-tab="tabEdit">입력/업로드</button>
+      <button class="tab" data-tab="tabHistory">수정 히스토리</button>
     </div>
 
-    <!-- ✅ 엑셀 업로드 -->
-    <div class="uploadBox">
-      <label>엑셀 업로드:</label>
-      <input id="fileInput" type="file" accept=".xlsx,.xls" />
-      <span class="small">업로드 즉시 Sheet3(3번째 시트)에서 장치장/곡종/재고량을 읽어 반영합니다.</span>
+    <!-- ================== 입력/업로드 ================== -->
+    <div class="section active" id="tabEdit">
+      <div class="toolbar">
+        <button id="btnSave">저장(브라우저 유지)</button>
+        <button id="btnLoad">불러오기</button>
+        <button id="btnReset">초기값으로</button>
+        <span class="hint">※ 저장/히스토리는 같은 PC/브라우저에만 유지됩니다.</span>
+      </div>
+
+      <div class="uploadBox">
+        <label>엑셀 업로드:</label>
+        <input id="fileInput" type="file" accept=".xlsx,.xls" />
+        <span class="small">업로드 즉시 Sheet3(3번째 시트)에서 장치장/곡종/재고량을 읽어 반영</span>
+      </div>
+
+      <div class="grid" id="formGrid">
+        <div class="head">장치장</div>
+        <div class="head">곡종</div>
+        <div class="head">재고량</div>
+      </div>
+
+      <div class="smallnote">
+        - 재고량은 <b>정수</b>만 표시(소수점 버림).<br>
+        - 재고량이 <b>0</b>이면 빨간색.<br>
+        - 곡종 색상: WASW/WASWP/WUSH(파랑), WCRS/WNS/WUR(갈색).<br>
+        - 엑셀 열 이름: <b>장치장</b>, <b>곡종</b>, <b>재고량</b>이면 자동 인식.
+      </div>
     </div>
 
-    <div class="grid" id="formGrid">
-      <div class="head">장치장</div>
-      <div class="head">곡종</div>
-      <div class="head">재고량</div>
+    <!-- ================== 히스토리 ================== -->
+    <div class="section" id="tabHistory">
+      <div class="historyBar">
+        <button id="btnExportHistory">히스토리 내보내기(JSON)</button>
+        <button id="btnClearHistory">히스토리 삭제</button>
+        <span class="meta" id="historyMeta"></span>
+      </div>
+      <div class="historyList" id="historyList"></div>
+      <div class="smallnote">
+        - 히스토리는 <b>변경된 항목만</b> 기록됩니다(변경 없음은 기록 안 함).<br>
+        - “업로드”는 업로드로 바뀐 항목들을 한 번에 기록합니다.
+      </div>
     </div>
 
-    <div class="smallnote">
-      - 재고량은 <b>정수</b>만 표시(소수점 버림).<br>
-      - 재고량이 <b>0</b>이면 빨간색으로 표시됩니다.<br>
-      - 곡종 색상: WASW/WASWP/WUSH(파랑), WCRS/WNS/WUR(갈색)<br>
-      - 엑셀 열 이름이 <b>장치장</b>, <b>곡종</b>, <b>재고량</b>이면 자동 인식됩니다.
-      (혹시 열 이름이 다르면 아래 코드에서 매핑만 바꾸면 됩니다.)
-    </div>
   </div>
 </div>
 
-<!-- ✅ XLSX 라이브러리(브라우저에서 엑셀 읽기) -->
+<!-- XLSX 라이브러리 -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
-/* ===== 레이아웃 ===== */
+/* =====================
+   1) 레이아웃/고정 배치
+===================== */
 const rectW = 84, rectH = 126, circleSize = 84, circleOffset = circleSize/2;
 
 const topCircles    = ["A101","A102","A103","A104","A105","A106"];
@@ -115,9 +173,12 @@ const row2Rects     = ["A401","A402","A403","A404","A405","A406","A407"];
 const bottomCircles = ["A501","A502","A503","A504","A505","A506"];
 const allLocations = [...topCircles, ...row1Rects, ...midCircles, ...row2Rects, ...bottomCircles];
 
-const STORAGE_KEY = "inventory_report_data_v2";
+const STORAGE_KEY = "inventory_report_data_v3";
+const HISTORY_KEY = "inventory_report_history_v1";
 
-/* 초기값(엑셀 기본값) */
+/* =====================
+   2) 초기 데이터
+===================== */
 const defaultData = {
   "A101":{grain:"WUR",qty:1600},"A102":{grain:"WCRS",qty:1700.557},"A103":{grain:"WASW",qty:1360.392},
   "A104":{grain:"WASWP",qty:1403.039},"A105":{grain:"WUR",qty:1700.915},"A106":{grain:"WNS",qty:1637.684},
@@ -140,7 +201,64 @@ const defaultData = {
 function deepClone(obj){ return JSON.parse(JSON.stringify(obj)); }
 let data = deepClone(defaultData);
 
-/* 색상 */
+/* =====================
+   3) 히스토리(변경 로그)
+   - sessionId: 페이지 새로고침/재접속 시 구분용
+===================== */
+const sessionId = (crypto?.randomUUID?.() || String(Date.now()) + "_" + Math.random().toString(16).slice(2));
+let history = [];
+
+function nowISO(){
+  const d = new Date();
+  // "YYYY-MM-DD HH:mm:ss"
+  const pad = n => String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+function normalizeForCompare(rec){
+  return {
+    grain: String(rec?.grain ?? "").trim(),
+    qty: qtyToInt(rec?.qty ?? 0) // 정수 기준으로 비교
+  };
+}
+
+function addHistoryEntry(entry){
+  history.unshift(entry); // 최신이 위로
+  persistHistory();
+  renderHistory();
+}
+
+function addHistoryBatch(kind, label, changes){
+  // changes: [{loc, before:{grain,qty}, after:{grain,qty}}]
+  if(!changes || changes.length === 0) return;
+
+  addHistoryEntry({
+    ts: nowISO(),
+    sessionId,
+    kind,              // "upload" | "manual" | "system"
+    label,             // 파일명, "직접 수정" 등
+    count: changes.length,
+    changes
+  });
+}
+
+function persistHistory(){
+  try{ localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); }catch(e){}
+}
+function loadHistory(){
+  const s = localStorage.getItem(HISTORY_KEY);
+  if(!s) return [];
+  try{
+    const arr = JSON.parse(s);
+    return Array.isArray(arr) ? arr : [];
+  }catch(e){
+    return [];
+  }
+}
+
+/* =====================
+   4) 스타일/표시 규칙
+===================== */
 function getColor(grain){
   if(["WASW","WASWP","WUSH"].includes(grain)) return "blue";
   if(["WCRS","WNS","WUR"].includes(grain)) return "brown";
@@ -152,13 +270,15 @@ function qtyToInt(q){
   return Math.floor(n);
 }
 
-/* ===== 도면 렌더 ===== */
+/* =====================
+   5) 도면 렌더
+===================== */
 const container = document.getElementById("container");
 const nodeByLoc = new Map();
 
 function createNodeHTML(location){
   const d = data[location] || {grain:"", qty:0};
-  const g = (d.grain ?? "").trim();
+  const g = String(d.grain ?? "").trim();
   const qInt = qtyToInt(d.qty);
   return {
     gText: g || "-",
@@ -219,7 +339,7 @@ function updateNode(location){
   if(!node) return;
 
   const d = data[location] || {grain:"", qty:0};
-  const g = (d.grain ?? "").trim();
+  const g = String(d.grain ?? "").trim();
   const qInt = qtyToInt(d.qty);
 
   node.topEl.textContent = g || "-";
@@ -231,7 +351,9 @@ function updateNode(location){
   node.botEl.textContent = location;
 }
 
-/* ===== 입력 폼 ===== */
+/* =====================
+   6) 입력 폼
+===================== */
 const formGrid = document.getElementById("formGrid");
 
 function buildForm(){
@@ -247,18 +369,59 @@ function buildForm(){
     const grainInput = document.createElement("input");
     grainInput.value = data[loc].grain ?? "";
     grainInput.placeholder = "예: WASW";
-    grainInput.addEventListener("input", ()=>{
-      data[loc].grain = grainInput.value.trim();
-      updateNode(loc);
-    });
 
     const qtyInput = document.createElement("input");
     qtyInput.value = String(qtyToInt(data[loc].qty));
     qtyInput.placeholder = "정수";
     qtyInput.inputMode = "numeric";
+
+    // 수동 변경 히스토리(곡종)
+    grainInput.addEventListener("change", ()=>{
+      const before = normalizeForCompare(data[loc]);
+      const nextGrain = grainInput.value.trim();
+      const after = { grain: nextGrain, qty: before.qty };
+
+      if(before.grain !== after.grain){
+        data[loc].grain = nextGrain;
+        updateNode(loc);
+        addHistoryBatch("manual", "직접 수정", [{
+          loc,
+          before,
+          after: normalizeForCompare(data[loc])
+        }]);
+      }
+    });
+
+    // 수동 변경 히스토리(재고량)
+    qtyInput.addEventListener("change", ()=>{
+      const before = normalizeForCompare(data[loc]);
+      const raw = qtyInput.value.replace(/,/g,"").trim();
+      const nextQty = raw === "" ? 0 : Number(raw);
+      const after = { grain: before.grain, qty: nextQty };
+
+      if(before.qty !== qtyToInt(after.qty)){
+        data[loc].qty = nextQty;
+        updateNode(loc);
+        // 입력창도 정수로 정리해서 보여주기
+        qtyInput.value = String(qtyToInt(nextQty));
+        addHistoryBatch("manual", "직접 수정", [{
+          loc,
+          before,
+          after: normalizeForCompare(data[loc])
+        }]);
+      }else{
+        qtyInput.value = String(before.qty);
+      }
+    });
+
+    // 입력 중 즉시 반영(히스토리는 change에서만 남김)
+    grainInput.addEventListener("input", ()=>{
+      data[loc].grain = grainInput.value.trim();
+      updateNode(loc);
+    });
     qtyInput.addEventListener("input", ()=>{
-      const raw = qtyInput.value.replace(/,/g,"");
-      data[loc].qty = (raw === "" ? 0 : Number(raw));
+      const raw = qtyInput.value.replace(/,/g,"").trim();
+      data[loc].qty = raw === "" ? 0 : Number(raw);
       updateNode(loc);
     });
 
@@ -268,7 +431,9 @@ function buildForm(){
   });
 }
 
-/* ===== 저장/불러오기 ===== */
+/* =====================
+   7) 저장/불러오기
+===================== */
 document.getElementById("btnSave").addEventListener("click", ()=>{
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   alert("저장 완료!");
@@ -279,23 +444,32 @@ document.getElementById("btnLoad").addEventListener("click", ()=>{
   try{
     const obj = JSON.parse(saved);
     allLocations.forEach(loc=>{
-      if(!obj[loc]) obj[loc] = {grain:"", qty:0};
+      if(!obj[loc]) obj[loc] = deepClone(defaultData[loc] || {grain:"", qty:0});
     });
     data = obj;
     renderAll(); buildForm();
+    addHistoryBatch("system", "불러오기", [{loc:"(전체)", before:{grain:"-",qty:0}, after:{grain:"불러오기",qty:0}}]);
     alert("불러오기 완료!");
   }catch(e){
     alert("불러오기 실패: 저장 형식 오류");
   }
 });
 document.getElementById("btnReset").addEventListener("click", ()=>{
+  const beforeAll = deepClone(data);
   data = deepClone(defaultData);
   renderAll(); buildForm();
+
+  // reset은 “전체”로 1건만 기록
+  addHistoryBatch("system", "초기값으로", [{
+    loc:"(전체)",
+    before:{grain:"-",qty:0},
+    after:{grain:"초기값 적용",qty:0}
+  }]);
 });
 
-/* ===== ✅ 엑셀 업로드 처리 =====
-   - 기본: 3번째 시트(Sheet3) 사용
-   - 헤더: 장치장 / 곡종 / 재고량 컬럼을 찾음 */
+/* =====================
+   8) 엑셀 업로드 → 즉시 반영 + 히스토리 기록
+===================== */
 document.getElementById("fileInput").addEventListener("change", async (e)=>{
   const file = e.target.files?.[0];
   if(!file) return;
@@ -310,21 +484,27 @@ document.getElementById("fileInput").addEventListener("change", async (e)=>{
 
     const sheetName = wb.SheetNames[2]; // 3번째 시트
     const ws = wb.Sheets[sheetName];
-
-    // row objects
     const rows = XLSX.utils.sheet_to_json(ws, {defval:"", raw:true});
-
-    // 컬럼 이름 후보(혹시 다른 이름일 때 대비)
-    const COL_LOC  = pickCol(rows, ["장치장","Location","loc","장치장코드","장치"]);
-    const COL_GRAIN= pickCol(rows, ["곡종","품목","grain","곡종명","품목명"]);
-    const COL_QTY  = pickCol(rows, ["재고량","수량","qty","수량(재고)","재고"]);
-
-    if(!COL_LOC || !COL_GRAIN || !COL_QTY){
-      alert("Sheet3에서 열 이름을 찾지 못했습니다.\n필요: 장치장 / 곡종 / 재고량\n(현재 시트의 헤더를 확인해주세요)");
+    if(!rows || rows.length === 0){
+      alert("Sheet3에 데이터가 없습니다.");
       return;
     }
 
-    // 새 데이터 생성(기존 data를 덮어쓰기: 지정된 장치장만 업데이트)
+    // 열 이름 찾기
+    const COL_LOC   = pickCol(rows, ["장치장","Location","loc","장치장코드","장치"]);
+    const COL_GRAIN = pickCol(rows, ["곡종","품목","grain","곡종명","품목명"]);
+    const COL_QTY   = pickCol(rows, ["재고량","수량","qty","수량(재고)","재고"]);
+
+    if(!COL_LOC || !COL_GRAIN || !COL_QTY){
+      alert("Sheet3에서 열 이름을 찾지 못했습니다.\n필요: 장치장 / 곡종 / 재고량");
+      return;
+    }
+
+    // 업로드 전 상태(비교용)
+    const beforeSnapshot = {};
+    allLocations.forEach(loc => beforeSnapshot[loc] = normalizeForCompare(data[loc]));
+
+    // 적용
     rows.forEach(r=>{
       const loc = String(r[COL_LOC]).trim();
       if(!allLocations.includes(loc)) return;
@@ -337,22 +517,33 @@ document.getElementById("fileInput").addEventListener("change", async (e)=>{
       data[loc].qty = qty;
     });
 
+    // 변경점만 모아 히스토리 기록
+    const changes = [];
+    allLocations.forEach(loc=>{
+      const before = beforeSnapshot[loc] || {grain:"", qty:0};
+      const after = normalizeForCompare(data[loc]);
+      if(before.grain !== after.grain || before.qty !== after.qty){
+        changes.push({loc, before, after});
+      }
+    });
+
     // 화면 갱신
     renderAll();
     buildForm();
 
-    alert(`업로드 반영 완료! (시트: ${sheetName})`);
+    // 업로드 히스토리(변경된 것만)
+    addHistoryBatch("upload", `엑셀 업로드: ${file.name} (시트: ${sheetName})`, changes);
+
+    alert(`업로드 반영 완료! (변경 ${changes.length}건)`);
   }catch(err){
     console.error(err);
     alert("엑셀 읽기 실패: 파일이 손상되었거나 형식이 다를 수 있습니다.");
   }finally{
-    // 같은 파일 다시 올릴 수 있게 input 초기화
-    e.target.value = "";
+    e.target.value = ""; // 같은 파일 다시 업로드 가능
   }
 });
 
 function pickCol(rows, candidates){
-  if(!rows || rows.length === 0) return null;
   const keys = Object.keys(rows[0] || {});
   for(const c of candidates){
     const found = keys.find(k => String(k).trim() === c);
@@ -361,8 +552,106 @@ function pickCol(rows, candidates){
   return null;
 }
 
-/* ===== 최초 실행 ===== */
+/* =====================
+   9) 히스토리 UI
+===================== */
+const historyList = document.getElementById("historyList");
+const historyMeta = document.getElementById("historyMeta");
+
+function renderHistory(){
+  historyMeta.textContent = `총 ${history.length}건 (이 브라우저에 저장됨)`;
+
+  historyList.innerHTML = "";
+  if(history.length === 0){
+    historyList.innerHTML = `<div style="padding:10px;color:#777;font-size:13px;">히스토리가 없습니다.</div>`;
+    return;
+  }
+
+  for(const h of history){
+    const div = document.createElement("div");
+    div.className = "hItem";
+
+    const badgeClass = h.kind === "upload" ? "upload" : (h.kind === "manual" ? "manual" : "");
+    const badgeText = h.kind === "upload" ? "업로드" : (h.kind === "manual" ? "수동" : "시스템");
+
+    const top = document.createElement("div");
+    top.className = "hTop";
+    top.innerHTML = `
+      <span class="badge ${badgeClass}">${badgeText}</span>
+      <span>${h.ts}</span>
+      <span>변경 ${h.count ?? (h.changes?.length ?? 0)}건</span>
+      <span class="mono">${escapeHtml(h.label || "")}</span>
+    `;
+
+    const body = document.createElement("div");
+    body.className = "hBody";
+
+    // 너무 길어질 수 있으니 20개까지만 미리보기 + 더보기
+    const changes = h.changes || [];
+    const preview = changes.slice(0, 20).map(c=>{
+      return `<div style="margin:2px 0;">
+        <span class="mono">${c.loc}</span> :
+        <span class="mono">${escapeHtml(c.before.grain)} / ${c.before.qty}</span>
+        → <span class="mono">${escapeHtml(c.after.grain)} / ${c.after.qty}</span>
+      </div>`;
+    }).join("");
+
+    const more = changes.length > 20
+      ? `<div style="margin-top:6px;color:#666;font-size:12px;">…외 ${changes.length-20}건 (내보내기(JSON)로 전체 확인)</div>`
+      : "";
+
+    body.innerHTML = preview + more;
+
+    div.appendChild(top);
+    div.appendChild(body);
+    historyList.appendChild(div);
+  }
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
+}
+
+document.getElementById("btnExportHistory").addEventListener("click", ()=>{
+  const blob = new Blob([JSON.stringify(history, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `history_${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("btnClearHistory").addEventListener("click", ()=>{
+  if(!confirm("히스토리를 모두 삭제할까요?")) return;
+  history = [];
+  persistHistory();
+  renderHistory();
+});
+
+/* =====================
+   10) 탭 전환
+===================== */
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+
+    const id = btn.dataset.tab;
+    document.querySelectorAll(".section").forEach(sec=>sec.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+  });
+});
+
+/* =====================
+   11) 초기 실행
+===================== */
 (function init(){
+  // 데이터 로드
   const saved = localStorage.getItem(STORAGE_KEY);
   if(saved){
     try{
@@ -375,8 +664,13 @@ function pickCol(rows, candidates){
       data = deepClone(defaultData);
     }
   }
+
+  // 히스토리 로드
+  history = loadHistory();
+
   renderAll();
   buildForm();
+  renderHistory();
 })();
 </script>
 
