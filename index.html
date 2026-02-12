@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>일일 재고 현황표</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#f4f4f4;
+    text-align:center;
+}
+
+h1{
+    margin:30px;
+    font-size:28px;
+    letter-spacing:6px;
+}
+
+.wrapper{
+    position:relative;
+    width:588px;   /* 84 × 7 */
+    height:500px;
+    margin:auto;
+}
+
+/* 직사각형 */
+.rect{
+    position:absolute;
+    width:84px;        /* 원과 동일 */
+    height:126px;      /* 1 : 1.5 비율 */
+    border:1px solid black;
+    background:white;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    z-index:1;
+}
+
+/* 원 */
+.circle{
+    position:absolute;
+    width:84px;        /* 살짝 축소 */
+    height:84px;
+    border-radius:50%;
+    background:white;  /* 🔹 흰색 채움 */
+    border:1px solid black;  /* 🔹 얇은 테두리 */
+    transform:translate(-50%,-50%);
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    z-index:10;
+}
+
+/* 텍스트 */
+.top{
+    font-weight:bold;
+    font-size:12px;
+}
+
+.middle{
+    font-weight:bold;
+    font-size:12px;
+    margin:2px 0;
+}
+
+.bottom{
+    color:#7CFC00;
+    font-size:12px;
+}
+
+/* 곡종 색상 */
+.blue{ color:blue; }
+.brown{ color:#8b4513; }
+
+/* 재고량 0 */
+.zero{
+    color:red;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>일 일 재 고 현 황 표</h1>
+
+<div class="wrapper" id="container"></div>
+
+<script>
+
+const rectW = 84;
+const rectH = 126;
+const circleSize = 84;
+const circleOffset = circleSize / 2;
+
+const container = document.getElementById("container");
+
+/* 엑셀 데이터 */
+const excelData = {
+"A101":{grain:"WUR",qty:1600},
+"A102":{grain:"WCRS",qty:1700.557},
+"A103":{grain:"WASW",qty:1360.392},
+"A104":{grain:"WASWP",qty:1403.039},
+"A105":{grain:"WUR",qty:1700.915},
+"A106":{grain:"WNS",qty:1637.684},
+
+"A201":{grain:"WUSL9.0",qty:146.96},
+"A202":{grain:"WUSH",qty:420},
+"A203":{grain:"WUR",qty:420.679},
+"A204":{grain:"WUR",qty:420.233},
+"A205":{grain:"WUSH",qty:420},
+"A206":{grain:"WUSL9.0",qty:419.86},
+"A207":{grain:"WUR",qty:158.126},
+
+"A301":{grain:"WUSH",qty:864.386},
+"A302":{grain:"WUSH",qty:1695.227},
+"A303":{grain:"WUSH",qty:1671.185},
+"A304":{grain:"WUSH",qty:1690.285},
+"A305":{grain:"WNS",qty:1697.176},
+"A306":{grain:"WUR",qty:1701.166},
+
+"A401":{grain:"WCRS",qty:170},
+"A402":{grain:"WUSH",qty:410},
+"A403":{grain:"WUSH",qty:0},
+"A404":{grain:"WNS",qty:419.287},
+"A405":{grain:"WUSH",qty:0},
+"A406":{grain:"WUSH",qty:0},
+"A407":{grain:"WNS",qty:170},
+
+"A501":{grain:"WUSH",qty:1557.437},
+"A502":{grain:"WNS",qty:1703.834},
+"A503":{grain:"WUSH",qty:1645.29},
+"A504":{grain:"WCRS",qty:956.294},
+"A505":{grain:"WASWP",qty:1696.74},
+"A506":{grain:"WUR",qty:1700.906}
+};
+
+function getColor(grain){
+    if(["WASW","WASWP","WUSH"].includes(grain)) return "blue";
+    if(["WCRS","WNS","WUR"].includes(grain)) return "brown";
+    return "";
+}
+
+function createRect(row,col,location){
+    const d = excelData[location];
+    const qtyValue = Math.floor(d.qty);
+
+    const rect=document.createElement("div");
+    rect.className="rect";
+    rect.style.left=(col*rectW)+"px";
+    rect.style.top=(row*rectH + circleOffset)+"px";
+
+    rect.innerHTML=`
+        <div class="top ${getColor(d.grain)}">${d.grain}</div>
+        <div class="middle ${qtyValue===0 ? 'zero' : ''}">
+            ${qtyValue.toLocaleString()}
+        </div>
+        <div class="bottom">${location}</div>
+    `;
+    container.appendChild(rect);
+}
+
+function createCircle(row,col,location){
+    const d = excelData[location];
+    const qtyValue = Math.floor(d.qty);
+
+    const circle=document.createElement("div");
+    circle.className="circle";
+    circle.style.left=(col*rectW)+"px";
+    circle.style.top=(row*rectH + circleOffset)+"px";
+
+    circle.innerHTML=`
+        <div class="top ${getColor(d.grain)}">${d.grain}</div>
+        <div class="middle ${qtyValue===0 ? 'zero' : ''}">
+            ${qtyValue.toLocaleString()}
+        </div>
+        <div class="bottom">${location}</div>
+    `;
+    container.appendChild(circle);
+}
+
+/* 배치 */
+["A101","A102","A103","A104","A105","A106"]
+.forEach((loc,i)=> createCircle(0,i+1,loc));
+
+["A201","A202","A203","A204","A205","A206","A207"]
+.forEach((loc,i)=> createRect(0,i,loc));
+
+["A301","A302","A303","A304","A305","A306"]
+.forEach((loc,i)=> createCircle(1,i+1,loc));
+
+["A401","A402","A403","A404","A405","A406","A407"]
+.forEach((loc,i)=> createRect(1,i,loc));
+
+["A501","A502","A503","A504","A505","A506"]
+.forEach((loc,i)=> createCircle(2,i+1,loc));
+
+</script>
+
+</body>
+</html>
